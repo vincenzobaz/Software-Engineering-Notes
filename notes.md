@@ -168,4 +168,158 @@ Sprint should have the same duration. If goals are not met, the team must own up
 
 ## Code Layout
 
-Layout matters
+Visual Layout matters: it shows the logical structure of the program, allows knowledge compilation and withstand the test of time.
+
+### Class
+
+ 1. Header comment
+ 2. class attributes
+ 3. public methods
+ 4. protected methods
+ 5. private methods
+
+One class / interface per file. Class name => file name.
+
+Upper camel case for names.
+
+Within a file, separate methods clearly
+
+Keep lines short (<= 120 chars max, aim for 80).
+Classes length <= 2000 lines.
+
+Group imports by package and avoid wildcard imports.
+
+### Method
+Align parameter type, not name if many parameters. Keep methods small and focused (max 150 lines, if > 50 ask if shouldn't restructure), max 7 parameters. Simple control flow, avoid mutual recursion.
+
+### Statements
+
+ - Use braces even for single statement blocks, each statement on a line by iteself.
+ - Indentation!
+ - separate blocks with whitelines
+ - Split complex predicates cleanly (e.g. on multiple lines), operator at the end of split line
+ - one line = one action. (e.g. one counter per for loop).
+
+### Variable names
+
+ - 10-16 chars
+ - CLEAR
+ - Longer names for rarely used variables.
+ - Indexes: *i,j* except when used outside loop.
+ - use computed values names (*total, sum, average, max, min*) appending them to variable name. (except *num* which goes at beginning of word, avoid if possible)
+ - Use common opposites
+ - explicit names & one variable for one purpose.
+ - Avoid generic names like *flag* and use specific name.
+ - Don't use/forget about strange behaviors: `bytesRead` number of bytes received, negative in case of error
+ - Separate namespaces: `namespace` in C++, java packages (`Database::Table`)
+ - Use **enumerations**
+ - Booleans: name should reflect that is a boolean (`status`: bad, `success`: good). Use *positive* booleans names. (Not everyone is as smart as you with logic)
+ - Should pass telephone test!
+ - Abbreviate: remove *-ing, -ed*, articles... Use a "Shortening Abbreviation" document.
+ - Data variables: put in comments what canno tgo in name.
+ - Names shoud differ in at least two characters.
+ - Avoid numerals (`fiel1, file2`) and commonly mispelled words.
+ - Use a single natural language for project (US / UK eng, french...)
+
+
+ TO BE FINISHED
+
+# 4 - Validation and Testing
+
+## Defensive programming
+
+### Deal with invalid inputs:
+Check for input validity:
+
+ - null references
+ - parameters in valid range
+ - Stream status, access type
+
+**invalid input => throw exception**
+Do not abuse exceptions (e.g. for flow control).
+If the validity check is too expensive/impractical and done implicitly (call other function checking its arguments) it is allowed not to do it. However it is advised to wrap/translate the exception. Add meaningful information to the exception, try to put yourself in the shoes of the catcher.
+
+Exceptions should be caught at the right level.
+
+### Exceptions
+
+ - **checked** (try catch): recoverable conditions
+ - **unchecked** (`RuntimeException`) Stop the program, cannot recover.
+
+### Using invalid data
+Always consider the key trade-off: is throwing exceptions more expensive than using wrong input times the probability of it being wrong?
+
+If exceptions are too expensive, and a bad input is received:
+ - Use previously used value
+ - use neutral value
+ - find closest legal value
+
+### Assertions
+
+`assert invariant : details`
+
+can be used during development to catch bugs: they allow to check for impossible conditions as they can verify that modified code still behaves as expected and can verify non-public methods.
+
+They also are a form of documentation that will be useful in the evolution of the project.
+
+Assertions are often used to verify code invariants.
+
+### Code invariant
+is property that should always be true throughout the execution of the program. It is generally restricted to a certain portion of the code (loop invariant, class invariant...)
+
+Use assertions to enforce it and to "catch the impossible (e.g. empty default statements)"
+
+### Defensive copying
+Copy objects received as input to avoid successive modifications by the user.
+
+## Software testing
+Tests cannot prove correctness of software, only find bugs.
+They allow to gain some level of confidence by catching bugs as early as we can.
+
+Types of testing:
+
+ - **black box**: test the functionalities of program
+ - **gray box**: the functionalities having knowledge of the internals
+ - **white box**: tests internal structures or workings of program
+
+We can test:
+ - **Equivalence classes**: one check => two classes (value must be less or equal than x, try less or equal [CLASS 1] and greater than x [CLASS 2]), two checks => three classes... *test at least one value for each class*
+ - **Boundary conditions**: most programs fail at input boundaries. If waiting for integer between x and y, just try x and y.
+
+### Metrics: test coverage
+
+*X is **covered** if it is executed at least once by at least one test*
+
+**Coverage** = % covered of total available. Different types according to what we want to test: method/function coverage, statement/line/block coverage, branch coverage, path coverage
+
+### Other tests
+
+ - Acceptance (how user receives product)
+ - Smoke/sanity (does it compile?)
+ - Compatibility (interaction with other products)
+ - Fault injection (bad inputs, bad returns from libraries, inject exception, simulate failures)
+ - Performance
+ - Usability
+
+## Test Driven Development (TDD)
+
+![tdd](tdd.png)
+
+Write code in order to make the tests pass: tests drive the design and implementation.
+
+### Good unit tests
+
+ - small and check one thing
+ - independent of each other
+
+### When to use TDD
+
+ - User interface behavior
+ - business logic
+ - any Java class /method
+
+### When not to use TDD
+
+ - user interface appearance (colors, layout...)
+ - client/server interactions (mock testing)
+ - legacy code / large codebases
