@@ -323,3 +323,180 @@ Write code in order to make the tests pass: tests drive the design and implement
  - user interface appearance (colors, layout...)
  - client/server interactions (mock testing)
  - legacy code / large codebases
+
+
+# 5 - Code Contracts and Audits
+
+## Inheritance vs. Containment
+
+Use inheritance only when it simplifies design.
+
+ - Inheritance <=> *is a*
+ - Containment <=> *has a*
+
+### Liskov Substitution Principle (LSP)
+
+**`x.q` is a property provable about objects `T x` and `S extends T` =>  `y.q` should be provable for `S y`.**
+
+ - Subtype must preserve supertype invariants
+ - Subtype not allowed to strengthen preconditions
+ - Subtype not allowed to weaken preconditions
+
+In other words:
+
+ - all methods of subclass usable from base class interface (no need to know type)
+ - base class can be replaced by subclass and code stays correct.
+
+### Design for inheritance
+
+Use `final` to prevent subclassing, thus forcing composition
+
+### Inheritance and Encapsulation
+
+Inheritance breaks encapsulation: subclasses can access private methods and fields of superclasses.
+
+Prefer `final` over `protected` to prevent subclasses violate invariant and use `protected` getters/setters if data access is necessary.
+
+### Hierarchies
+
+ - **avoid deep hierarchies**: max 3 levels, 7 +- 2 subclasses as deep trees produce higher bug rates
+ - **avoid linear hierarchies** (A extends B extends C extends ...): sign of mistaken *designing ahead*, it's better to design easy to change classes and refactor later if needed.
+ - Push common interfaces, data and behavior as high up as possible
+
+### Multiple inheritance
+not possible in Java. **Diamond problem**
+
+In Java it is possible to implement many interfaces (`default` methods are new, they allow for mixins)
+
+**Mixins** in other languages (Scala, python, perl, ruby): orthogonal functionalities, single purpose, not instantiable
+
+### Conclusion
+
+Containment:
+
+ - When: classes share common data but not behavior
+ - How: containing class controls the interfaces
+ - Careful: avoid excessive method forwarding
+
+Inheritance
+ - When: multiple classes share common behavior, **do not use if LSP violated**
+ - How: inherit only what is truly shared, base class controls interface and provides implementations.
+
+## Design by Contract
+
+Contracts among software modules: **Pre- and post conditions are obligations and benefits**
+
+### Contracts in Software Construction
+
+ - Pre and post conditions are boolean predicates
+ - any call must satisfy preconditions
+ - any return must satisfy postcondition
+ - by default pre and postconditions are assumed to be true.
+
+```java
+@Requires({
+"Collections.isSorted(left)",
+"Collections.isSorted(right)"
+})
+@Ensures({
+"Collections.containsSame(result, Lists.concatenate(left, right))",
+"Collections.isSorted(result)"
+})
+List<T> mergeSorted(List<T> left, List<T> right);
+```
+### Violations
+
+A precondition or postcondition fails -> assertion -> exception
+
+ - **precondition violation** => bug at the **caller**
+ - **postcondition violation** => bug at the **callee**
+
+**software is correct => assertions never fail**
+
+Subclass inherits contracts from superclass, can add postconditions, can remove preconditions. (ONLY ALLOWED)
+
+### Representation invariants (class contracts)
+
+Internal contract of class
+
+```java
+@Invariant({"s != null"})
+class CharacterSet {
+	Set s...
+}
+```
+
+Must be satisfied after instantiation, through public method calls.
+
+### Benefits
+
+ - Obligations of caller and callee are much clearer, which eliminates the need for double checking.
+ - contracts serve as code documentation
+ - Contracts are checked at runtime, like assertions (or statically...)
+
+## UML
+
+Well covered in course slides
+
+## Comments in code
+
+ - Natural language is more ambiguous than code => don't rely on comments for understanding, use them to make reading faster
+ - Good comments clarify code, they do not repeat it
+ - Comments should help navigate the code, like headings in a book, table of contents
+ - **Comment *what*, not *how***
+ - Prepare reader for what is to follow
+ - Document workarounds
+
+### Bad comments
+
+ - Comments that disagree with the code
+ - Write methods using pseudocode, turn pseudocode into comments and then code.
+
+### Types
+
+ - Summary of code => OK
+ - Describe code intent => OK
+ - Repeat code => Useless
+ - Explain code => BAD : fix the code, make it more readable
+ - Markers: FIXME, TODO....
+
+### Class Comments
+
+Header comment contains purpose and desing at high level (conceptual), including discarded design alternatives.
+They should include names and email address
+
+### Interface comments
+
+Should be enough for the user not to need to look at implementation, should not contain implementation details.
+
+### Method header
+
+1/2 sentences describing intent (if hard, then perhaps not well designed method). Include source of algorithm
+
+### Block comments
+
+same indentation as block, precede block comment with blankline
+
+### Control flow comments
+
+comment end of control structure (especially if long). Avoid commenting if, case while if obvious.
+
+### End of line comments
+
+Avoid if possible except if highly non obvious code or to annotate data declarations.
+Do not use for multiple statements.
+
+### Do comment WHILE coding
+
+ - Helps understand code
+ - Remember: code will change and comments must to
+ - Use pseudocode
+ - LOC count does not include comments
+
+## Coding Conventions
+
+Have a coding convetions documents in large teams: uniform style makes code much more readable by other people in organization.
+
+Use a checkstyle to verify that style is used. It checks for: layout, class design issues, duplicated code, bug patterns
+
+However be careful: too rigid standards threaten creativity and code quality.
