@@ -625,3 +625,10 @@ One subject class which provides methods `addObserver`, `removeObserver` which a
 This allows to loose the coupling between subject and observers, as subjects know nothing about the observers and is therefore a generic mechanism for updates.
 
 Observers are often called *listeners* but not all listeners implement the observer pattern: if there is only one listener, it's not observer, just a callback, such as `onClickListener` or `setOnClickListener` in Android (fixed functionality associated to event, **not observer**)
+
+## Structural patterns: Adapter
+![adapter](adapter.png)
+## Structural patterns: Decorator
+## Structural patterns: Proxy
+## Structural patterns: Composite
+## Structural patterns: Visitor
