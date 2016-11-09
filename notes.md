@@ -500,3 +500,128 @@ Have a coding convetions documents in large teams: uniform style makes code much
 Use a checkstyle to verify that style is used. It checks for: layout, class design issues, duplicated code, bug patterns
 
 However be careful: too rigid standards threaten creativity and code quality.
+
+# Design Patterns
+![pattern families](pattern_groups.png)
+## Patterns
+
+A *pattern* is a careful description of a perennial solution to a recurring problem.
+
+Each patter describes a problem which occurs over and over again and then describes the core solution to that problem in such a way that you can use the solution a million times over, without ever doing it the same way twice.
+
+### Software design patters
+
+Name, problem, solution, consequences.
+
+### Already known patterns
+
+ - Encapsulation
+ - Inheritance
+ - Iteration
+ - Exceptions
+
+## Creational Patterns: Factory Method
+
+Two types:
+
+ - Static Factory Method: a static method of a class returns an instance of that class. The static method does that by calling a private constructor. Helps for example when wanting to limit the number of instances of a class. Can return private subclasses (signature with public superclass). BUT classes with private constructors cannot be subclassed.
+ - Original GOF ("Gang of four") definition: delegate to a factory method the decision of what instance of a class to create. Base class provides interface for providing objects, subclasses produce them => Polymorphism is key
+ Define method returning object to be used in other parts of the code.
+
+```java
+// Example of GOF factory method.
+class Worker {
+  public void doWork() {
+    Printer log = new ConsolePrinter();
+    // ...
+    log.debug("stuff");
+  }
+}
+
+// becomes
+
+class Worker {
+  protected Printer getPrinter() { // factory method
+    return new ConsolePrinter();
+  }
+
+  public void ddWork() {
+    Printer log = getPrinter();
+    //....
+  }
+}
+```
+
+## Creational Patterns: Abstract Factory
+
+**Problem**:
+
+ - Assemble something without regard to component details
+ - Want to delegate the enforcement of consistency of use (make sure the rules of use are enforced, but the logic to do so not in client code)
+
+**Solution**:
+
+ - The application gives us a method accepting the Factory that will be used to create the app.
+ - The method accepts an object implementing the `Factory` interface (the abstract factory). This interface declares the `createX` methods.
+ - The user can write classes implementing this interface and pass instances of it to the application.
+
+Using this pattern, the client code uses multiple families of products, yet it is isolated from their implementation. This allows for minimal cost switches and enforces inter-product constraints uniformly in the concrete factories.
+
+It makes harder however to add or remove products or product attributes and can represent unecessary complexity and extra work in the initial code.
+
+## Creational Patterns: Singleton
+
+**Problem**:
+ - There shall only be one object (instance of a class) (duh!, scala `object`)
+
+for example if there must be only one broker for a resource, or a resource accessed from disparate parts of the system (which don't know each other and thus may have trouble coordinating). e.g loggers
+
+**Solution**:
+
+ - Unique instance of a class, have the class enforce uniqueness
+
+ ```java
+ // naive version
+ public class Singleton {
+   public static final Singleton oneInstance = new Singleton();
+
+   private Singleton() {}
+ }
+
+public class Singleton {
+  private static final Singleton oneInstance = new Singleton();
+
+  // against reflection attacks
+  private Singleton() {
+    if (oneInstance != null) {
+      throw new IllegalStateException("Already instantiated");
+    }
+  }
+
+  // static factory
+  public static Singleton getInstance() {
+    return oneInstance;
+  }
+}
+
+// simplest, from Java 5
+public enum Singleton {
+  oneInstance;
+}
+```
+
+Having only one instance guarding a resource allows to enforce strict control over it. It is better than a global variable or a mutable public field.
+
+However testing becomes harder, subclassing is hard and Java makes it quite hard to enforce uniquennes.
+
+## Behavioral patterns: Observer
+
+![observer](observer.png)
+
+Example: database watched by many, potentially different, views with tight coupling database views.
+
+One subject class which provides methods `addObserver`, `removeObserver` which allow to add/remove observer. When data changes, the subject iterates over the added observers and notifies each of them, for example by calling their update method.
+
+This allows to loose the coupling between subject and observers, as subjects know nothing about the observers and is therefore a generic mechanism for updates.
+
+Observers are often called *listeners* but not all listeners implement the observer pattern: if there is only one listener, it's not observer, just a callback, such as `onClickListener` or `setOnClickListener` in Android (fixed functionality associated to event, **not observer**)
